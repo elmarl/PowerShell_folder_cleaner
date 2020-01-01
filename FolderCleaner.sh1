@@ -1,0 +1,18 @@
+#default clean folder: Downloads, modify accordingly
+$folder = "$HOME\Downloads\"
+$zipfile = $folder+"OldFiles.zip"
+#deafault age of files to clean 30 days
+$limit = (Get-Date).AddDays(-30)
+#find all the old files in the folder to clean
+$files = Get-ChildItem $folder -Recurse | Where-Object {
+    $_.LastWriteTime -lt $limit
+}
+//for each found item, zip into archive (with default Optimized setting) and delete from the folder to clean
+foreach($file in $files) {
+    try {
+        Compress-Archive $folder$file -DestinationPath $zipfile -Update -ErrorAction Stop
+        Remove-Item $folder$file -Recurse -ErrorAction Stop
+    } catch {
+        Write-Verbose "Something went wrong with zipping/removing files"
+    }
+}
