@@ -7,7 +7,7 @@ $limit = (Get-Date).AddDays(-30)
 $files = Get-ChildItem $folder -Recurse | Where-Object {
     $_.LastWriteTime -lt $limit
 }
-//for each found item, zip into archive (with default Optimized setting) and delete from the folder to clean
+#for each found item, zip into archive (with default Optimized setting) and delete from the folder to clean
 foreach($file in $files) {
     try {
         Compress-Archive $folder$file -DestinationPath $zipfile -Update -ErrorAction Stop
