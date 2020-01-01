@@ -1,12 +1,50 @@
-#default clean folder: Downloads, modify accordingly
-$folder = "$HOME\Downloads\"
-$zipfile = $folder+"OldFiles.zip"
+#Set how old files should be to be cleaned, default more than 30 days old
+$age = 30
+#Open folder browser, select folder to clean of old files
+Function Get-Folder($initialDirectory)
+{
+    [System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms")|Out-Null
+
+    $foldername = New-Object System.Windows.Forms.FolderBrowserDialog
+    $foldername.Description = "Select a folder to clean of files older than: "+$age
+    $foldername.rootfolder = "MyComputer"
+
+    if($foldername.ShowDialog() -eq "OK")
+    {
+        $folder += $foldername.SelectedPath
+    } else {
+    Break
+    }
+    return $folder
+}
+
+#Get selected folder and create the zip folder path
+$folder = Get-Folder
+$folder = $folder+"\"
+$zipfile = $folder+"\OldFiles.zip"
+
 #deafault age of files to clean 30 days
-$limit = (Get-Date).AddDays(-30)
+$limit = (Get-Date).AddDays(-$age)
 #find all the old files in the folder to clean
 $files = Get-ChildItem $folder -Recurse | Where-Object {
     $_.LastWriteTime -lt $limit
 }
+#check if the file already exists. If it does, ask for user to either overwrite, create a new file, or cancel
+if([System.IO.File]::Exists($zipfile)){
+    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic")
+    $ans = [Microsoft.VisualBasic.Interaction]::MsgBox("The file OldFiles.zip already exists, overwrite?",'YesNoCancel,Question', "Respond please")
+    if($ans -eq "No"){
+        [void][Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
+        $title = 'OldFile.zip already exists, enter a new name for zip file to store old files in'
+        $msg   = 'Enter name of zip file:'
+        $zipfile = $folder+"\"+[Microsoft.VisualBasic.Interaction]::InputBox($msg, $title)
+    } elseif ($ans -eq "Cancel"){
+        Break
+    } elseif ($ans -eq "Ok"){
+        #do nothing, overwrite OldFiles.zip
+    }
+}
+
 #for each found item, zip into archive (with default Optimized setting) and delete from the folder to clean
 foreach($file in $files) {
     try {
