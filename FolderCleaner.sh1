@@ -1,5 +1,12 @@
-#Set how old files should be to be cleaned, default more than 30 days old
-$age = 30
+#Set how old files should be to be cleaned
+do {
+  [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic') | Out-Null
+$age = [Microsoft.VisualBasic.Interaction]::InputBox("How many days old files should be cleaned?", "Folder Cleaner")
+  $value = $age -as [Int]
+  $ok = $value -ne $NULL
+  if ( -not $ok ) { write-host "You must enter a numeric value" }
+}
+until ( $ok )
 #Open folder browser, select folder to clean of old files
 Function Get-Folder($initialDirectory)
 {
@@ -17,7 +24,6 @@ Function Get-Folder($initialDirectory)
     }
     return $folder
 }
-
 #Get selected folder and create the zip folder path
 $folder = Get-Folder
 $folder = $folder+"\"
@@ -29,20 +35,16 @@ $limit = (Get-Date).AddDays(-$age)
 $files = Get-ChildItem $folder -Recurse | Where-Object {
     $_.LastWriteTime -lt $limit
 }
-#check if the file already exists. If it does, ask for user to either overwrite, create a new file, or cancel
+
 if([System.IO.File]::Exists($zipfile)){
-    [System.Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic")
-    $ans = [Microsoft.VisualBasic.Interaction]::MsgBox("The file OldFiles.zip already exists, overwrite?",'YesNoCancel,Question', "Respond please")
-    if($ans -eq "No"){
-        [void][Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
-        $title = 'OldFile.zip already exists, enter a new name for zip file to store old files in'
-        $msg   = 'Enter name of zip file:'
-        $zipfile = $folder+"\"+[Microsoft.VisualBasic.Interaction]::InputBox($msg, $title)
-    } elseif ($ans -eq "Cancel"){
-        Break
-    } elseif ($ans -eq "Ok"){
-        #do nothing, overwrite OldFiles.zip
-    }
+	[System.Reflection.Assembly]::LoadWithPartialName("Microsoft.VisualBasic")
+	$ans = [Microsoft.VisualBasic.Interaction]::MsgBox("The file OldFiles.zip already exists, overwrite?",'YesNoCancel,Question', "Respond please")
+	if($ans=="No"){
+		[void][Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
+		$title = 'OldFile.zip already exists, enter a new name for zip file to store old files in'
+		$msg   = 'Enter name of zip file:'
+		$zipfile = [Microsoft.VisualBasic.Interaction]::InputBox($msg, $title)
+	}
 }
 
 #for each found item, zip into archive (with default Optimized setting) and delete from the folder to clean
