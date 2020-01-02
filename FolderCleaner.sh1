@@ -28,8 +28,6 @@ Function Get-Folder($initialDirectory)
 $folder = Get-Folder
 $folder = $folder+"\"
 $zipfile = $folder+"\OldFiles.zip"
-
-#deafault age of files to clean 30 days
 $limit = (Get-Date).AddDays(-$age)
 #find all the old files in the folder to clean
 $files = Get-ChildItem $folder -Recurse | Where-Object {
